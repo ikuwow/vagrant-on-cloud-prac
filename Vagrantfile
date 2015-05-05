@@ -1,6 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require 'yaml'
+api_keys = YAML.load_file("aws-credential.yml")
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -12,7 +15,35 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "base"
+  # config.vm.box = "chef/centos-6.6"
+  config.vm.box = "dummy"
+  
+  config.vm.provider :aws do |aws, override|
+    aws.access_key_id = api_keys["access_key_id"]
+    aws.secret_access_key = api_keys["secret_access_key"]
+    aws.keypair_name = "vagrant-aws-2"
+    aws.instance_type = "t2.micro"
+    aws.security_groups = [ 'vagrant-security-group' ]
+    aws.region = "ap-northeast-1" # Tokyo
+    aws.availability_zone = "ap-northeast-1a"
+
+    aws.tags = {
+        "Name" => "vtest"
+    }
+
+    # Ubuntu Server 14.04 LTS (HVM), SSD Volume Type 
+    # aws.ami = "ami-936d9d93"
+    
+    # Cloudpack's customized CentOS 6.6 AMI Image.
+    # aws.ami = "ami-28abbc29"
+
+    # Amazon Linux AMI 2015.03 (HVM), SSD Volume Type
+    aws.ami = "ami-cbf90ecb"
+
+    override.ssh.username = "ec2-user"
+    override.ssh.private_key_path = "~/.ssh/vagrant-aws-2.pem"
+  end
+  
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs

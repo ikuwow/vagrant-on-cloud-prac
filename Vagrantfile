@@ -38,7 +38,11 @@ Vagrant.configure(2) do |config|
     # aws.ami = "ami-28abbc29"
 
     # Amazon Linux AMI 2015.03 (HVM), SSD Volume Type
-    aws.ami = "ami-cbf90ecb"
+    # aws.ami = "ami-cbf90ecb"
+
+    # My AMI
+    aws.ami = "ami-6ae5296a"
+    aws.elastic_ip = "52.68.34.8"
 
     override.ssh.username = "ec2-user"
     override.ssh.private_key_path = "~/.ssh/vagrant-aws-2.pem"
@@ -99,4 +103,6 @@ Vagrant.configure(2) do |config|
   #   sudo apt-get update
   #   sudo apt-get install -y apache2
   # SHELL
+
+  config.vm.provision "shell", inline: "yum update -y"
 end

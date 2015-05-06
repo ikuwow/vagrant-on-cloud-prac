@@ -42,7 +42,7 @@ Vagrant.configure(2) do |config|
 
     # My AMI
     aws.ami = "ami-6ae5296a"
-    aws.elastic_ip = "52.68.34.8"
+    aws.elastic_ip = api_keys["elastic_ip"]
 
     override.ssh.username = "ec2-user"
     override.ssh.private_key_path = "~/.ssh/vagrant-aws-2.pem"

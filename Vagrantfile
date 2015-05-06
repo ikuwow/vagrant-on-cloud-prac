@@ -2,7 +2,8 @@
 # vi: set ft=ruby :
 
 require 'yaml'
-api_keys = YAML.load_file("aws-credential.yml")
+aws_configs = YAML.load_file("aws-credential.yml")
+digoc_configs = YAML.load_file("digital_ocean_configs.yml")
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
@@ -18,76 +19,55 @@ Vagrant.configure(2) do |config|
   # config.vm.box = "chef/centos-6.6"
   config.vm.box = "dummy"
   
-  config.vm.provider :aws do |aws, override|
-    aws.access_key_id = api_keys["access_key_id"]
-    aws.secret_access_key = api_keys["secret_access_key"]
-    aws.keypair_name = "vagrant-aws-2"
-    aws.instance_type = "t2.micro"
-    aws.security_groups = [ 'vagrant-security-group' ]
-    aws.region = "ap-northeast-1" # Tokyo
-    aws.availability_zone = "ap-northeast-1a"
+  # EC2 (AWS) 
+  config.vm.define "machine1" do |m|
+    m.vm.provider :aws do |aws, override|
+      aws.access_key_id = aws_configs["access_key_id"]
+      aws.secret_access_key = aws_configs["secret_access_key"]
+      aws.keypair_name = "vagrant-aws-2"
+      aws.instance_type = "t2.micro"
+      aws.security_groups = [ 'vagrant-security-group' ]
+      aws.region = "ap-northeast-1" # Tokyo
+      aws.availability_zone = "ap-northeast-1a"
 
-    aws.tags = {
-        "Name" => "vtest"
-    }
+      aws.tags = {
+          "Name" => "vtest"
+      }
 
-    # Ubuntu Server 14.04 LTS (HVM), SSD Volume Type 
-    # aws.ami = "ami-936d9d93"
-    
-    # Cloudpack's customized CentOS 6.6 AMI Image.
-    # aws.ami = "ami-28abbc29"
+      # My AMI
+      aws.ami = "ami-6ae5296a"
+      aws.elastic_ip = aws_configs["elastic_ip"]
 
-    # Amazon Linux AMI 2015.03 (HVM), SSD Volume Type
-    # aws.ami = "ami-cbf90ecb"
+      override.ssh.username = "ec2-user"
+      override.ssh.private_key_path = "~/.ssh/vagrant-aws-2.pem"
+    end
+  end
 
-    # My AMI
-    aws.ami = "ami-6ae5296a"
-    aws.elastic_ip = api_keys["elastic_ip"]
+  # DigitalOcean
+  config.vm.define "machine2" do |m|
+    m.vm.provider :digital_ocean do |digoc, override|
 
-    override.ssh.username = "ec2-user"
-    override.ssh.private_key_path = "~/.ssh/vagrant-aws-2.pem"
+      override.vm.hostname = "vagrant"
+      override.vm.box = "digital_ocean"
+      override.vm.box_url = "https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+      override.ssh.username = "vagrant"
+      override.ssh.private_key_path = "~/.ssh/id_rsa"
+        
+      digoc.token = digoc_configs["token"]
+      digoc.ssh_key_name = digoc_configs["ssh_key_name"]
+      digoc.size = '512mb'
+      digoc.region = "sgp1"
+      digoc.image = "centos-6-5-x64"
+      digoc.setup = true
+    end
   end
   
-
-  # Disable automatic box update checking. If you disable this, then
-  # boxes will only be checked for updates when the user runs
-  # `vagrant box outdated`. This is not recommended.
-  # config.vm.box_check_update = false
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
-
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
-
-  # Create a public network, which generally matched to bridged network.
-  # Bridged networks make the machine appear as another physical device on
-  # your network.
-  # config.vm.network "public_network"
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   # config.vm.synced_folder "../data", "/vagrant_data"
-
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
-  # config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-  #   vb.gui = true
-  #
-  #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
   # such as FTP and Heroku are also available. See the documentation at
